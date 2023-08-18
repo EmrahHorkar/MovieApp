@@ -1,0 +1,255 @@
+﻿@using System.Security.Claims;
+@model AppUser
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        /* Add your custom styles here */
+
+        .profile-container {
+            text-align: center;
+            margin: 20px;
+        }
+
+        .user-info {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f7f7f7;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .user-image {
+            margin-right: 100px;
+            width: 120px;
+            height: 120px;
+            overflow: hidden;
+            border-radius: 50%;
+            box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.2);
+        }
+
+            .user-image img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+
+        .user-details {
+            text-align: left;
+        }
+
+        .movie-list {
+            display: flex;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            width: 100%; /* Set a fixed width */
+        }
+
+        .movie-item {
+            margin-right: 20px;
+            text-align: center;
+            background-color: #f7f7f7;
+            border-radius: 10px;
+            padding: 10px;
+            box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .movie-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .movie-image {
+            width: 150px;
+            height: 225px; /* Maintain aspect ratio */
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+        .movie-name {
+            margin-top: 10px;
+            font-size: 14px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 150px;
+        }
+
+        .user-statistics {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+
+        .user-statistic {
+            text-align: center;
+            background-color: #f7f7f7;
+            border-radius: 10px;
+            padding: 10px;
+            box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.2);
+            flex: 1;
+            margin: 0 10px;
+        }
+
+            .user-statistic p {
+                margin-bottom: 5px;
+            }
+
+            .user-statistic h3 {
+                margin: 0;
+                font-size: 24px;
+            }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="profile-container">
+            <div class="user-info">
+                <div class="user-image">
+                    <img src="~/images/pp.jpg" alt="Profile Photo" />
+                </div>
+                <div class="user-details">
+                    <h2>@Model.FirstName @Model.LastName</h2>
+                    @if (User.Identity.IsAuthenticated && Model.Id != int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)))
+                    {
+                        @if (Model.Followers.Any(u => u.Id == int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier))))
+                        {
+                            <form method="post" asp-action="UnfollowUser">
+                                <input type="hidden" name="userId" value="@Model.Id" />
+                                <button type="submit" class="btn btn-secondary">Unfollow</button>
+                            </form>
+                        }
+                        else
+                        {
+                            <form method="post" asp-action="FollowUser">
+                                <input type="hidden" name="userId" value="@Model.Id" />
+                                <button type="submit" class="btn btn-primary">Follow</button>
+                            </form>
+                        }
+                    }
+                </div>
+            </div>
+            <div class="user-statistics">
+                <div class="user-statistic">
+                    <a href="@Url.Action("UserPosts", "Home", new { userId = Model.Id }) ">
+                        <p>Posts</p>
+                    </a>
+                    <h3>@Model.PostCount</h3>
+                </div>
+                <div class="user-statistic">
+                    <p>Favorite Movies</p>
+                    <h3>@Model.FavoriteMovies.Count</h3>
+                </div>
+                <div class="user-statistic">
+                    <p>Watched Movies</p>
+                    <h3>@Model.WatchedMovies.Count</h3>
+                </div>
+                <div class="user-statistic">
+                    <p>Followers</p>
+                    <h3>@Model.Followers.Count</h3>
+                </div>
+                <div class="user-statistic">
+                    <p>Following</p>
+                    <h3>@Model.FollowedUsers.Count</h3>
+                </div>
+            </div>
+        </div>
+        <!-- ... your ex@if (User.Identity.IsAuthenticated && Model.Id != int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)))
+        {
+        @if (Model.Followers.Any(u => u.Id == int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier))))
+        {
+                    <form method="post" asp-action="UnfollowUser">
+                        <input type="hidden" name="userId" value="@Model.Id" />
+                        <button type="submit" class="btn btn-secondary">Unfollow</button>
+                    </form>
+        }
+        else
+        {
+                    <form method="post" asp-action="FollowUser">
+                        <input type="hidden" name="userId" value="@Model.Id" />
+                        <button type="submit" class="btn btn-primary">Follow</button>
+                    </form>
+        }
+        }isting code ... -->
+
+        <h2>Favorite Movies:</h2>
+        <div class="movie-list">
+            @foreach (var favoriteMovie in Model.FavoriteMovies)
+            {
+                <div class="movie-item" loading="lazy" virtual>
+                    <a href="@Url.Action("DetailsMovie", "Home", new { id = favoriteMovie.Movie.Id })">
+                        <div class="movie-container">
+                            <a href="@Url.Action("DetailsMovie", "Home", new { id = favoriteMovie.Movie.Id })">
+                                <img src="@favoriteMovie.Movie.ImageUrl" alt="Movie Image" class="movie-image">
+                            </a>
+                            <p class="movie-name">
+                                <a href="@Url.Action("DetailsMovie", "Home", new { id = favoriteMovie.Movie.Id })">
+                                    @favoriteMovie.Movie.Title
+                                </a>
+                            </p>
+                        </div>
+                    </a>
+                </div>
+            }
+        </div>
+        
+        <h2>Watched Movies:</h2>
+        <div class="movie-list">
+            @foreach (var watchedMovie in Model.WatchedMovies)
+            {
+                <div class="movie-item" loading="lazy" virtual>
+                    <a href="@Url.Action("DetailsMovie", "Home", new { id = watchedMovie.Movie.Id })">
+                        <div class="movie-container">
+                            <a href="@Url.Action("DetailsMovie", "Home", new { id = watchedMovie.Movie.Id })">
+                                <img src="@watchedMovie.Movie.ImageUrl" alt="Movie Image" class="movie-image">
+                            </a>
+                            <p class="movie-name">
+                                <a href="@Url.Action("DetailsMovie", "Home", new { id = watchedMovie.Movie.Id })">
+                                    @watchedMovie.Movie.Title
+                                </a>
+                            </p>
+                        </div>
+                    </a>
+                </div>
+            }
+        </div>
+        
+        @if (User.Identity.IsAuthenticated && Model.Id == int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)))
+        {
+            <form method="post" asp-action="AddFavoriteMovie">
+                <div class="form-group">
+                    <label for="favoriteMovieId">Select a movie:</label>
+                    <select class="form-control" id="favoriteMovieId" name="movieId">
+                        @foreach (var movie in ViewBag.AllMovies)
+                        {
+                            <option value="@movie.Id">@movie.Title</option>
+                        }
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary">Add to Favorites</button>
+            </form>
+        }
+        @if (User.Identity.IsAuthenticated && Model.Id == int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)))
+        {
+            <form method="post" asp-action="AddWatchedMovie">
+                <div class="form-group">
+                    <label for="watchedMovieId">Select a movie:</label>
+                    <select class="form-control" id="watchedMovieId" name="movieId">
+                        @foreach (var movie in ViewBag.AllMovies)
+                        {
+                            <option value="@movie.Id">@movie.Title</option>
+                        }
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary">Add to Watched</button>
+            </form>
+        }
+        
+</body>
+</html>

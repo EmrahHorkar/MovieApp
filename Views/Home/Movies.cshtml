@@ -1,0 +1,52 @@
+﻿@using System.Security.Claims;
+@model IEnumerable<MovieApp.Models.Movie>
+
+@{
+    ViewData["Title"] = "Movies";
+    var userId = User.FindFirstValue(ClaimTypes.NameIdentifier); // Get the current user's ID
+    bool isAdmin = userId == "1";
+}
+
+<h1>Movies</h1>
+
+<div class="d-flex justify-content-between align-items-center">
+    @if (isAdmin)
+    {
+        <a asp-action="CreateMovie" class="btn btn-primary">Create New</a>
+    }
+
+    <form method="get" action="@Url.Action("Movies", "Home")" class="mb-3">
+        <div class="input-group">
+            <input type="text" name="searchQuery" class="form-control" placeholder="Search for movies..." />
+            <button type="submit" class="btn btn-sm btn-primary ml-2">Search</button>
+        </div>
+    </form>
+</div>
+
+<div class="row">
+    @foreach (var item in Model)
+    {
+        <div class="col-md-4">
+            <div class="card" style="width: 100%; margin-bottom: 20px;">
+                <img class="card-img-top" src="@item.ImageUrl" loading="lazy" virtual alt="@item.Title" style="max-height: 400px;">
+                <div class="card-body">
+                    <h5 class="card-title">@item.Title</h5>
+                    <p class="card-text">@item.Description</p>
+                    <p class="card-text"><strong>Director:</strong> @item.Director</p>
+                    <p class="card-text"><strong>Category:</strong> @item.Category.Name</p>
+                    @if (isAdmin)
+                    {
+                        <a href="@Url.Action("EditMovie", new { id = item.Id })" class="btn btn-primary">Edit</a>
+                    }
+                    
+                    <a href="@Url.Action("DetailsMovie", new { id = item.Id })" class="btn btn-success">Details</a>
+                    @if (isAdmin)
+                    {
+                        <a href="@Url.Action("DeleteMovie", new { id = item.Id })" class="btn btn-danger">Delete</a>
+                    }
+                    
+                </div>
+            </div>
+        </div>
+    }
+</div>

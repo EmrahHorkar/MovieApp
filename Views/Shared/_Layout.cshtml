@@ -1,0 +1,150 @@
+﻿@using System.Security.Claims;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - MovieApp</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/MovieApp.styles.css" asp-append-version="true" />
+    <style>
+        /* Additional styling for the layout */
+        .navbar.navbar-custom {
+            background-color: #1b6ec2;
+            border-bottom: 1px solid #1861ac;
+        }
+
+            .navbar.navbar-custom .navbar-brand {
+                color: #fff;
+            }
+
+            .navbar.navbar-custom .navbar-toggler-icon {
+                background-color: #fff;
+            }
+
+            .navbar.navbar-custom .navbar-nav .nav-link {
+                color: #333;
+                transition: color 0.2s;
+            }
+
+                .navbar.navbar-custom .navbar-nav .nav-link:hover {
+                    color: #1b6ec2;
+                }
+                
+    </style>
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-dark border-bottom box-shadow mb-3">
+            <div class="container-fluid">
+                <a class="navbar-brand text-light" asp-area="" asp-controller="Home" asp-action="Posts">MovieH</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                        aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                    <ul class="navbar-nav flex-grow-1">
+                       @* <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+                        </li>*@
+                        <li class="nav-item ">
+                            @if (User.Identity.IsAuthenticated)
+                            {
+                                if (int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out int userId) && userId == 1)
+                                {
+                                    <a class="nav-link text-light" asp-area="" asp-controller="Home" asp-action="Category">Category</a>
+                                }
+                            }
+                        </li>
+                        <li class="nav-item">   
+                            <a class="nav-link text-light" asp-area="" asp-controller="Home" asp-action="Movies">Movies</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-light" asp-area="" asp-controller="Home" asp-action="Posts">Posts</a>
+                        </li>
+                    </ul>
+                    <ul class="navbar-nav">
+                        @if (User.Identity.IsAuthenticated)
+                        {
+                            <li class="nav-item">
+                                <form id="userSearchForm" class="d-flex align-items-center">
+                                    <input type="text" id="userSearchInput" placeholder="Search users" class="form-control me-2">
+                                    <div id="userSearchResults"></div>
+                                </form>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-light" href="~/Home/Profile">Profile</a>
+                            </li>
+                            @*<li class="nav-item">
+                                <a href="~/Home/Profile">My Profile</a>
+                            </li>*@
+
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle text-light" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    @User.Identity.Name
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                                    <li>
+                                        <a class="dropdown-item" asp-area="" asp-controller="Home" asp-action="Logout">Logout</a>
+                                    </li>
+                                </ul>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-light" asp-area="" asp-controller="Home" asp-action="Login">Login</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-light" asp-area="" asp-controller="Home" asp-action="Register">Register</a>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+    <div class="container">
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
+    </div>
+
+    @*<footer class="border-top footer text-muted">
+        <div class="container">
+            &copy; 2023 - MovieApp - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+        </div>
+    </footer>*@
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+    <script>
+        $(document).ready(function () {
+            const userSearchInput = $('#userSearchInput');
+            const userSearchResults = $('#userSearchResults');
+
+            userSearchInput.on('input', function () {
+                const searchTerm = userSearchInput.val().trim();
+
+                if (searchTerm.length > 0) {
+                    $.get('@Url.Action("SearchUsers", "Home")', { searchTerm: searchTerm }, function (data) {
+                        let suggestionsHtml = '';
+
+                        data.forEach(user => {
+                            suggestionsHtml += `<div><a href="/Home/Profile/${user.id}">${user.fullName}</a></div>`;
+                        });
+
+                        userSearchResults.html(suggestionsHtml);
+                    });
+                } else {
+                    userSearchResults.empty();
+                }
+            });
+        });
+    </script>
+
+
+</body>
+</html>

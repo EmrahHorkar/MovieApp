@@ -1,0 +1,82 @@
+﻿@using System.Security.Claims;
+@model MovieApp.Models.Movie
+
+@{
+    ViewData["Title"] = "Movie Details";
+    var userId = User.FindFirstValue(ClaimTypes.NameIdentifier); 
+    bool isAdmin = userId == "1";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-4">
+            <img class="img-fluid" src="@Model.ImageUrl" alt="@Model.Title">
+        </div>
+        <div class="col-md-8">
+            <h1>@Model.Title</h1>
+            <p class="lead">@Model.Description</p>
+            <p><strong>Director:</strong> @Model.Director</p>
+            <p><strong>Category:</strong> @Model.Category.Name</p>
+
+            <div class="mt-3">
+                @if (isAdmin)
+                {
+                     <a asp-action="EditMovie" asp-route-id="@Model.Id" class="btn btn-primary">Edit</a>
+                }
+                
+                <a asp-action="Movies" class="btn btn-secondary">Back to List</a>
+                <br/>
+                <br/>
+                <br/>
+                <br/>
+                <form asp-action="AddComment" method="post">
+                    <input type="hidden" name="movieId" value="@Model.Id" />
+                    <div class="mb-3">
+                        @*<label for="commentText" class="form-label">Add a comment:</label>*@
+                        <textarea class="form-control" id="commentText" name="commentText" rows="3" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Add Comment</button>
+                </form>
+
+            </div>
+            
+            
+        </div>
+    </div>
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <h3>Comments</h3
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-12">
+            @foreach (var comment in Model.Comments)
+            {
+                
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            @if (comment.User != null)
+                            {
+                               
+                                <img src="~/images/pp.jpg" alt="User Image" class="rounded-circle border border-secondary me-3" width="50" height="50">
+                                <div>
+                                    
+                                    <h5 class="card-title">@($"{comment.User.FirstName} {comment.User.LastName}")</h5>
+                                    
+                                    
+                                    
+                                    <p class="card-text fw-bold">@comment.Description</p>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+
+
+        </div>
+
+    </div>
+    </div>

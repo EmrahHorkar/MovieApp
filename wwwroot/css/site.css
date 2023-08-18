@@ -1,0 +1,60 @@
+html {
+  font-size: 14px;
+}
+
+@media (min-width: 768px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
+  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+}
+
+html {
+  position: relative;
+  min-height: 100%;
+}
+
+body {
+  margin-bottom: 60px;
+}
+/* userSearch.css */
+
+/* Adjust z-index for search field */
+#searchField {
+    position: relative;
+    z-index: 11;
+}
+
+/* Suggestions dropdown */
+#userSearchResults {
+    position: absolute;
+    top: 100%;
+    width: 100%;
+    background-color: white;
+    border: 1px solid #e1e8ed;
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    z-index: 10;
+}
+
+    #userSearchResults div {
+        padding: 8px;
+        border-bottom: 1px solid #e1e8ed;
+    }
+
+        #userSearchResults div:last-child {
+            border-bottom: none;
+        }
+
+    #userSearchResults a {
+        color: #1da1f2;
+        text-decoration: none;
+    }
+
+        #userSearchResults a:hover {
+            text-decoration: underline;
+        }

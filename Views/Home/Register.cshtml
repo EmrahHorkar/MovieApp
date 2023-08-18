@@ -1,0 +1,34 @@
+﻿@model MovieApp.Models.AppUser
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card mt-5">
+                <div class="card-body">
+                    <h2 class="card-title text-center">Register</h2>
+                    <form asp-controller="Home" asp-action="Register" method="post">
+                        <div class="form-group">
+                            <label for="FirstName">First Name:</label>
+                            <input type="text" class="form-control" id="FirstName" name="firstName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="LastName">Last Name:</label>
+                            <input type="text" class="form-control" id="LastName" name="lastName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="Email">Email:</label>
+                            <input type="email" class="form-control" id="Email" name="email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="Password">Password:</label>
+                            <input type="password" class="form-control" id="Password" name="password" required>
+                        </div>
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-primary">Register</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

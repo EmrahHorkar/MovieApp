@@ -1,0 +1,30 @@
+﻿@model List<MovieApp.Models.Post>
+
+<h2>Posts</h2>
+
+@if (User.Identity.IsAuthenticated)
+{
+    <a class="btn btn-primary" asp-area="" asp-controller="Post" asp-action="CreatePost">Create Post</a>
+}
+
+@foreach (var post in Model)
+{
+    <div class="post">
+        <h3>@post.Title</h3>
+        <p>@post.Description</p>
+
+        <p>Created At: @post.CreatedAt</p>
+        @if (!string.IsNullOrEmpty(post.ImageUrl))
+        {
+            <img src="@post.ImageUrl" alt="Post Image" style="max-width: 100%;">
+        }
+    </div>
+}
+
+<style>
+    .post {
+        margin-bottom: 20px;
+        border: 1px solid #ccc;
+        padding: 10px;
+    }
+</style>

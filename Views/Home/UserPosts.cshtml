@@ -1,0 +1,19 @@
+﻿@model List<Post>
+
+<!DOCTYPE html>
+<html>
+<head>
+    <!-- ... your head content ... -->
+</head>
+<body>
+    <div class="container">
+        <h2>User Posts</h2>
+        <ul>
+            @foreach (var post in Model)
+            {
+                <li>@post.Title - @post.Description</li>
+            }
+        </ul>
+    </div>
+</body>
+</html>

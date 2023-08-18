@@ -1,0 +1,133 @@
+﻿@using System.Security.Claims;
+@model List<MovieApp.Models.Post>
+
+<style>
+    .post {
+        display: flex;
+        justify-content: space-between;
+        background-color: white;
+        border: 1px solid #e1e8ed;
+        border-radius: 8px;
+        padding: 15px;
+        margin: 15px 0;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        position: relative;
+    }
+
+    .delete-button {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+    }
+
+    .user-image {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        margin-right: 10px;
+    }
+
+    .post-content {
+        flex: 1;
+    }
+
+    .post h3 {
+        margin-top: 0;
+        font-size: 1.2rem;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+
+    .post p {
+        margin: 0;
+        font-size: 1rem;
+    }
+
+    .post .author {
+        font-size: 0.9rem;
+        color: #657786;
+    }
+
+    
+    .post img {
+        max-width: 100%;
+        border-radius: 8px;
+        margin-top: 10px;
+    }
+
+    .small-image {
+        max-width: 300px;
+        max-height: 300px;
+    }
+
+    .btn-primary {
+        background-color: #1da1f2;
+        color: white;
+        border: none;
+        border-radius: 25px;
+        padding: 8px 20px;
+        font-size: 1rem;
+        text-decoration: none;
+        transition: background-color 0.2s;
+    }
+
+        .btn-primary:hover {
+            background-color: #0c87b8;
+        }
+
+    .btn-danger {
+        background-color: #e0245e;
+        color: white;
+        border: none;
+        border-radius: 25px;
+        padding: 5px 15px;
+        font-size: 0.9rem;
+        transition: background-color 0.2s;
+    }
+
+        .btn-danger:hover {
+            background-color: #ae103a;
+        }
+
+
+</style>
+
+<h2>Posts</h2>
+
+@if (User.Identity.IsAuthenticated)
+{
+    <a class="btn btn-primary" asp-area="" asp-controller="Home" asp-action="CreatePost">Create Post</a>
+}
+
+@{
+    var sortedPosts = Model.OrderByDescending(post => post.CreatedAt);
+}
+
+@foreach (var post in sortedPosts)
+{
+    <div class="post">
+        <a href="@Url.Action("Profile", "Home", new { id = post.Author.Id })">
+            <img class="user-image" src="~/images/pp.jpg" alt="User Image">
+        </a>
+        <div class="post-content">
+            <a href="@Url.Action("Profile", "Home", new { id = post.Author.Id })">
+                <p class="author">@($"{post.Author.FirstName} {post.Author.LastName}")</p>
+            </a>
+            <h3>@post.Title</h3>
+            <p>@post.Description</p>
+
+            @if (!string.IsNullOrEmpty(post.ImageUrl))
+            {
+                <img src="@post.ImageUrl" alt="Post Image" class="small-image">
+            }
+            <p>@post.CreatedAt</p>
+        </div>
+        @if (User.Identity.IsAuthenticated && post.AuthorId == int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)))
+        {
+            <form class="delete-button" asp-action="DeletePost" asp-controller="Home" method="post">
+                <input type="hidden" name="postId" value="@post.Id" />
+                <button type="submit" class="btn btn-danger">Delete</button>
+            </form>
+        }
+    </div>
+}
