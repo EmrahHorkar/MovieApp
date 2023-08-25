@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MovieApp.Data;
 
@@ -11,9 +12,11 @@ using MovieApp.Data;
 namespace MovieApp.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230818083425_Cat")]
+    partial class Cat
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -81,21 +84,6 @@ namespace MovieApp.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Categories");
-                });
-
-            modelBuilder.Entity("MovieApp.Models.CategoryMovie", b =>
-                {
-                    b.Property<int>("CategoryId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("MovieId")
-                        .HasColumnType("int");
-
-                    b.HasKey("CategoryId", "MovieId");
-
-                    b.HasIndex("MovieId");
-
-                    b.ToTable("CategoryMovies");
                 });
 
             modelBuilder.Entity("MovieApp.Models.Comment", b =>
@@ -207,38 +195,6 @@ namespace MovieApp.Migrations
                     b.ToTable("UserFavoriteMovie");
                 });
 
-            modelBuilder.Entity("MovieApp.Models.UserMessage", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int?>("AppUserId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Content")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("ReceiverId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("SenderId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AppUserId");
-
-                    b.HasIndex("ReceiverId");
-
-                    b.HasIndex("SenderId");
-
-                    b.ToTable("UserMessages");
-                });
-
             modelBuilder.Entity("MovieApp.Models.UserWatchedMovie", b =>
                 {
                     b.Property<int>("UserId")
@@ -267,25 +223,6 @@ namespace MovieApp.Migrations
                         .HasForeignKey("FollowersId")
                         .OnDelete(DeleteBehavior.ClientCascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("MovieApp.Models.CategoryMovie", b =>
-                {
-                    b.HasOne("MovieApp.Models.Category", "Category")
-                        .WithMany("CategoryMovies")
-                        .HasForeignKey("CategoryId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("MovieApp.Models.Movie", "Movie")
-                        .WithMany("CategoryMovies")
-                        .HasForeignKey("MovieId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Category");
-
-                    b.Navigation("Movie");
                 });
 
             modelBuilder.Entity("MovieApp.Models.Comment", b =>
@@ -348,29 +285,6 @@ namespace MovieApp.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("MovieApp.Models.UserMessage", b =>
-                {
-                    b.HasOne("MovieApp.Models.AppUser", null)
-                        .WithMany("ReceivedMessages")
-                        .HasForeignKey("AppUserId");
-
-                    b.HasOne("MovieApp.Models.AppUser", "Receiver")
-                        .WithMany()
-                        .HasForeignKey("ReceiverId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("MovieApp.Models.AppUser", "Sender")
-                        .WithMany()
-                        .HasForeignKey("SenderId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Receiver");
-
-                    b.Navigation("Sender");
-                });
-
             modelBuilder.Entity("MovieApp.Models.UserWatchedMovie", b =>
                 {
                     b.HasOne("MovieApp.Models.Movie", "Movie")
@@ -396,20 +310,11 @@ namespace MovieApp.Migrations
 
                     b.Navigation("FavoriteMovies");
 
-                    b.Navigation("ReceivedMessages");
-
                     b.Navigation("WatchedMovies");
-                });
-
-            modelBuilder.Entity("MovieApp.Models.Category", b =>
-                {
-                    b.Navigation("CategoryMovies");
                 });
 
             modelBuilder.Entity("MovieApp.Models.Movie", b =>
                 {
-                    b.Navigation("CategoryMovies");
-
                     b.Navigation("Comments");
 
                     b.Navigation("FavoritedBy");

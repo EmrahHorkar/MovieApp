@@ -25,9 +25,11 @@
         <label asp-for="ImageUrl">Image URL</label>
         <input asp-for="ImageUrl" class="form-control" />
     </div>
+    <!-- Use a multiple select element to allow the user to choose more than one category for the movie -->
+    <!-- Use the asp-for tag helper to bind the selected categories to the CategoryMovies property of the movie model -->
     <div class="form-group">
-        <label asp-for="CategoryId">Category</label>
-        <select asp-for="CategoryId" asp-items="ViewBag.Categories" class="form-control"></select>
+        <label>Categories</label>
+        <select asp-for="CategoryIds" asp-items="@ViewBag.Categories" multiple class="form-control"></select>
     </div>
     <button type="submit" class="btn btn-primary">Update</button>
 </form>

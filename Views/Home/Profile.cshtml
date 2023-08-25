@@ -132,9 +132,19 @@
                                 <button type="submit" class="btn btn-primary">Follow</button>
                             </form>
                         }
+                        <form method="post" asp-action="SendMessage">
+                            <input type="hidden" name="userId" value="@Model.Id" />
+                            <div class="form-group">
+                                <label for="messageContent">Message:</label>
+                                <textarea class="form-control" id="messageContent" name="content" rows="3" required></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Send Message</button>
+                        </form>
+
                     }
                 </div>
             </div>
+
             <div class="user-statistics">
                 <div class="user-statistic">
                     <a href="@Url.Action("UserPosts", "Home", new { userId = Model.Id }) ">
@@ -186,7 +196,7 @@
                     <a href="@Url.Action("DetailsMovie", "Home", new { id = favoriteMovie.Movie.Id })">
                         <div class="movie-container">
                             <a href="@Url.Action("DetailsMovie", "Home", new { id = favoriteMovie.Movie.Id })">
-                                <img src="@favoriteMovie.Movie.ImageUrl" alt="Movie Image" class="movie-image">
+                                <img src="@favoriteMovie.Movie.ImageUrl" alt="Movie Image" class="movie-image" loading="lazy">
                             </a>
                             <p class="movie-name">
                                 <a href="@Url.Action("DetailsMovie", "Home", new { id = favoriteMovie.Movie.Id })">
@@ -198,7 +208,13 @@
                 </div>
             }
         </div>
-        
+        <h3>Received Messages:</h3>
+        <ul>
+            @foreach (var message in Model.ReceivedMessages)
+            {
+                <li>From: @message.Sender.FirstName @message.Sender.LastName - Content: @message.Content</li>
+            }
+        </ul>
         <h2>Watched Movies:</h2>
         <div class="movie-list">
             @foreach (var watchedMovie in Model.WatchedMovies)
@@ -207,7 +223,7 @@
                     <a href="@Url.Action("DetailsMovie", "Home", new { id = watchedMovie.Movie.Id })">
                         <div class="movie-container">
                             <a href="@Url.Action("DetailsMovie", "Home", new { id = watchedMovie.Movie.Id })">
-                                <img src="@watchedMovie.Movie.ImageUrl" alt="Movie Image" class="movie-image">
+                                <img src="@watchedMovie.Movie.ImageUrl" alt="Movie Image" class="movie-image" loading="lazy">
                             </a>
                             <p class="movie-name">
                                 <a href="@Url.Action("DetailsMovie", "Home", new { id = watchedMovie.Movie.Id })">

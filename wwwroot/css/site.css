@@ -58,3 +58,7 @@ body {
         #userSearchResults a:hover {
             text-decoration: underline;
         }
+
+.movie-section {
+    width: 80%;
+}

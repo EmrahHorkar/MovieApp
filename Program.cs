@@ -5,6 +5,7 @@ using MovieApp.Data;
 using MovieApp.Models;
 using Microsoft.Extensions.DependencyInjection;
 using MovieApp.Services;
+using System.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,6 +27,8 @@ builder.Services.AddAuthentication(options =>
 });
 
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddSingleton<MessageProducerService>();
+builder.Services.AddHostedService<MessageConsumerService>();
 
 var app = builder.Build();
 
@@ -65,4 +68,9 @@ app.MapControllerRoute(
     name: "message",
     pattern: "Message/{action}/{id?}",
     defaults: new { controller = "Message" });
+app.MapControllerRoute(
+    name: "sendmessage",
+    pattern: "SendMessage",
+    defaults: new { controller = "Home", action = "SendMessage" });
+
 app.Run();

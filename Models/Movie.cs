@@ -1,4 +1,6 @@
-﻿namespace MovieApp.Models
+﻿using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
+namespace MovieApp.Models
 {
     public class Movie
     {
@@ -12,5 +14,10 @@
         public List<UserFavoriteMovie> FavoritedBy { get; set; } = new List<UserFavoriteMovie>();
         public List<UserWatchedMovie> WatchedBy { get; set; } = new List<UserWatchedMovie>();
         public List<Comment> Comments { get; set; } = new List<Comment>();
+        public List<CategoryMovie> CategoryMovies { get; set; } = new List<CategoryMovie>();
+
+        [NotMapped]
+        public List<int> CategoryIds { get; set; }
+
     }
 }

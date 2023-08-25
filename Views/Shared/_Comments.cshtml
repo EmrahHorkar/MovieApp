@@ -1,0 +1,12 @@
+﻿@model IEnumerable<MovieApp.Models.Comment>
+
+<h3>Comments</h3>
+<ul>
+    @foreach (var comment in Model)
+    {
+        <li>
+            <p>@comment.Description</p>
+            <p><strong>By:</strong> @comment.User.FirstName @comment.User.LastName</p>
+        </li>
+    }
+</ul>

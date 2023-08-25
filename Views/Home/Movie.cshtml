@@ -29,8 +29,8 @@
                 <td>@movie.Title</td>
                 <td>@movie.Description</td>
                 <td>@movie.Director</td>
-                <td>@movie.Category.Name</td>
-                <td>
+@*                <td>@movie.Category.Name</td>
+*@                <td>
                     <a asp-action="EditMovie" asp-route-id="@movie.Id" class="btn btn-secondary">Edit</a>
                     <a asp-action="DeleteMovie" asp-route-id="@movie.Id" class="btn btn-danger">Delete</a>
                 </td>

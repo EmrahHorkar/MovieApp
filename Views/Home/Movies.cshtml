@@ -7,46 +7,76 @@
     bool isAdmin = userId == "1";
 }
 
-<h1>Movies</h1>
-
-<div class="d-flex justify-content-between align-items-center">
-    @if (isAdmin)
-    {
-        <a asp-action="CreateMovie" class="btn btn-primary">Create New</a>
-    }
-
-    <form method="get" action="@Url.Action("Movies", "Home")" class="mb-3">
-        <div class="input-group">
-            <input type="text" name="searchQuery" class="form-control" placeholder="Search for movies..." />
-            <button type="submit" class="btn btn-sm btn-primary ml-2">Search</button>
-        </div>
-    </form>
-</div>
-
-<div class="row">
-    @foreach (var item in Model)
-    {
-        <div class="col-md-4">
-            <div class="card" style="width: 100%; margin-bottom: 20px;">
-                <img class="card-img-top" src="@item.ImageUrl" loading="lazy" virtual alt="@item.Title" style="max-height: 400px;">
+<div class="container">
+    <h1 class="mt-4">Movies</h1>
+    <div class="row">
+        <div class="col-md-3">
+            <div class="card mt-4">
                 <div class="card-body">
-                    <h5 class="card-title">@item.Title</h5>
-                    <p class="card-text">@item.Description</p>
-                    <p class="card-text"><strong>Director:</strong> @item.Director</p>
-                    <p class="card-text"><strong>Category:</strong> @item.Category.Name</p>
-                    @if (isAdmin)
-                    {
-                        <a href="@Url.Action("EditMovie", new { id = item.Id })" class="btn btn-primary">Edit</a>
-                    }
-                    
-                    <a href="@Url.Action("DetailsMovie", new { id = item.Id })" class="btn btn-success">Details</a>
-                    @if (isAdmin)
-                    {
-                        <a href="@Url.Action("DeleteMovie", new { id = item.Id })" class="btn btn-danger">Delete</a>
-                    }
-                    
+                    <h4 class="card-title">Filter by Category</h4>
+                    <form method="get" action="@Url.Action("Movies", "Home")">
+                        @foreach (var category in ViewData["Categories"] as List<MovieApp.Models.Category>)
+                        {
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" id="category-@category.Id" name="categoryIds" value="@category.Id">
+                                <label class="form-check-label" for="category-@category.Id">@category.Name</label>
+                            </div>
+                        }
+                        <button type="submit" class="btn btn-primary mt-3">Filter</button>
+                    </form>
                 </div>
             </div>
         </div>
-    }
+
+        <div class="col-md-9">
+            <div class="d-flex justify-content-between align-items-center">
+                @if (isAdmin)
+                {
+                    <a asp-action="CreateMovie" class="btn btn-primary">Create New</a>
+                }
+
+                <form method="get" action="@Url.Action("Movies", "Home")" class="mb-3">
+                    <div class="input-group">
+                        <input type="text" name="searchQuery" class="form-control" placeholder="Search for movies...">
+                        <button type="submit" class="btn btn-primary">Search</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="row">
+                @foreach (var item in Model)
+                {
+                    <div class="col-md-4 mb-4">
+                        <div class="card h-100">
+                            <a href="@Url.Action("DetailsMovie", new { id = item.Id })">
+                                <img class="card-img-top" src="@item.ImageUrl" alt="@item.Title" loading="lazy">
+                            </a>
+                            <div class="card-body">
+                                <h5 class="card-title">@item.Title</h5>
+                                <p class="card-text">@item.Description</p>
+                                <p class="card-text"><strong>Director:</strong> @item.Director</p>
+                                <p class="card-text">
+                                    <strong>Categories:</strong>
+                                    @foreach (var cm in item.CategoryMovies)
+                                    {
+                                        @cm.Category.Name
+                                        if (cm != item.CategoryMovies.Last())
+                                        {
+                                            @:,
+                                        }
+                                    }
+                                </p>
+                                @if (isAdmin)
+                                {
+                                    <a href="@Url.Action("EditMovie", new { id = item.Id })" class="btn btn-primary mr-2">Edit</a>
+                                    <a href="@Url.Action("DeleteMovie", new { id = item.Id })" class="btn btn-danger">Delete</a>
+                                }
+                                <a href="@Url.Action("DetailsMovie", new { id = item.Id })" class="btn btn-success">Details</a>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
 </div>

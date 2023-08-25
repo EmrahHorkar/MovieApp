@@ -20,6 +20,6 @@
             public List<AppUser> Followers { get; set; } = new List<AppUser>();
             public List<AppUser> FollowedUsers { get; set; } = new List<AppUser>();
             public List<Comment> Comments { get; set; } = new List<Comment>();
-
+            public List<UserMessage> ReceivedMessages { get; set; } = new List<UserMessage>();
     }
     }

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MovieApp.Data;
 
@@ -11,9 +12,11 @@ using MovieApp.Data;
 namespace MovieApp.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230823125833_Rabbit4")]
+    partial class Rabbit4
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -215,9 +218,6 @@ namespace MovieApp.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("AppUserId")
-                        .HasColumnType("int");
-
                     b.Property<string>("Content")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -229,8 +229,6 @@ namespace MovieApp.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("AppUserId");
 
                     b.HasIndex("ReceiverId");
 
@@ -350,10 +348,6 @@ namespace MovieApp.Migrations
 
             modelBuilder.Entity("MovieApp.Models.UserMessage", b =>
                 {
-                    b.HasOne("MovieApp.Models.AppUser", null)
-                        .WithMany("ReceivedMessages")
-                        .HasForeignKey("AppUserId");
-
                     b.HasOne("MovieApp.Models.AppUser", "Receiver")
                         .WithMany()
                         .HasForeignKey("ReceiverId")
@@ -395,8 +389,6 @@ namespace MovieApp.Migrations
                     b.Navigation("Comments");
 
                     b.Navigation("FavoriteMovies");
-
-                    b.Navigation("ReceivedMessages");
 
                     b.Navigation("WatchedMovies");
                 });

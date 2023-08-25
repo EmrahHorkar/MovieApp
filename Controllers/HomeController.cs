@@ -8,6 +8,7 @@ using MovieApp.Models;
 using System.Diagnostics;
 using System.Security.Claims;
 using MovieApp.Services;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace MovieApp.Controllers
 {
@@ -16,12 +17,71 @@ namespace MovieApp.Controllers
         private readonly ILogger<HomeController> _logger;
         private readonly ApplicationDbContext _context;
         private readonly IUserService _userService;
-        public HomeController(ILogger<HomeController> logger, ApplicationDbContext context, IUserService userService)
+        private readonly MessageProducerService _messageProducer;
+        private readonly IServiceScopeFactory _serviceScopeFactory; // Add this line
+
+        public HomeController(ILogger<HomeController> logger, ApplicationDbContext context, IUserService userService, MessageProducerService messageProducer, IServiceScopeFactory serviceScopeFactory) // Add IServiceScopeFactory parameter
         {
             _logger = logger;
             _context = context;
             _userService = userService;
+            _messageProducer = messageProducer;
+            _serviceScopeFactory = serviceScopeFactory; // Assign the serviceScopeFactory
         }
+
+        public IActionResult SendMessage(int receiverId, string content)
+        {
+            if (ModelState.IsValid)
+            {
+                var senderId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+
+                var message = new UserMessage
+                {
+                    SenderId = senderId,
+                    ReceiverId = receiverId,
+                    Content = content
+                };
+
+                _messageProducer.SendMessage(message); // Send message to RabbitMQ queue
+
+                using (var scope = _serviceScopeFactory.CreateScope())
+                {
+                    var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                    context.UserMessages.Add(message); // Save the message to the database
+                    context.SaveChanges();
+                }
+            }
+            else
+            {
+                // Handle invalid ModelState, e.g., return a View with error messages
+                return View();
+            }
+
+            return RedirectToAction("Profile", new { id = receiverId });
+        }
+        public IActionResult UserMessages()
+        {
+            if (User.Identity.IsAuthenticated)
+            {
+                var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+
+                var userMessages = _context.UserMessages
+                    .Where(um => um.ReceiverId == userId)
+                    .ToList();
+
+                return View(userMessages);
+            }
+
+            return RedirectToAction("Login"); // Redirect unauthenticated users
+        }
+        //public IActionResult SentMessages(int userId)
+        //{
+        //    var sentMessages = _context.UserMessage
+        //        .Where(message => message.SenderId == userId)
+        //        .ToList();
+
+        //    return View(sentMessages);
+        //}
 
         public async Task<IActionResult> AddCategory(Category category)
         {
@@ -69,17 +129,26 @@ namespace MovieApp.Controllers
         }
         public IActionResult CreateMovie()
         {
-            var categories = _context.Categories.ToList();
-            var categoryItems = categories.Select(c => new SelectListItem { Value = c.Id.ToString(), Text = c.Name }).ToList();
-
-            ViewBag.Categories = categoryItems;
-            return View();
+            
+            var movie = new Movie { CategoryMovies = _context.CategoryMovies.Include(cm => cm.Category).ToList() };
+            ViewBag.Categories = new SelectList(_context.Categories, "Id", "Name");
+            return View(movie);
         }
 
-
         [HttpPost]
-        public async Task<IActionResult> CreateMovie(Movie movie)
+        public async Task<IActionResult> CreateMovie(Movie movie, int[] categoryIds)
         {
+            
+            foreach (var categoryId in categoryIds)
+            {
+                var categoryMovie = new CategoryMovie
+                {
+                    CategoryId = categoryId,
+                    Movie = movie
+                };
+                _context.CategoryMovies.Add(categoryMovie);
+            }
+
             _context.Add(movie);
             await _context.SaveChangesAsync();
             return RedirectToAction("Movies");
@@ -91,19 +160,25 @@ namespace MovieApp.Controllers
                 return NotFound();
             }
 
-            var movie = _context.Movies.Include(m => m.Category).FirstOrDefault(m => m.Id == id);
+            var movie = _context.Movies
+                .Include(m => m.CategoryMovies)
+                .FirstOrDefault(m => m.Id == id);
 
             if (movie == null)
             {
                 return NotFound();
             }
 
+           
+            movie.CategoryIds = movie.CategoryMovies.Select(cm => cm.CategoryId).ToList();
+
             var categories = _context.Categories.ToList();
             var categoryItems = categories.Select(c => new SelectListItem { Value = c.Id.ToString(), Text = c.Name }).ToList();
-
             ViewBag.Categories = categoryItems;
+
             return View(movie);
         }
+
         public IActionResult DetailsMovie(int? id)
         {
             if (id == null)
@@ -111,11 +186,13 @@ namespace MovieApp.Controllers
                 return NotFound();
             }
 
+            
             var movie = _context.Movies
-    .Include(m => m.Category)
-    .Include(m => m.Comments)
-        .ThenInclude(c => c.User)
-    .FirstOrDefault(m => m.Id == id);
+                .Include(m => m.CategoryMovies)
+                    .ThenInclude(cm => cm.Category) 
+                .Include(m => m.Comments)
+                    .ThenInclude(c => c.User)
+                .FirstOrDefault(m => m.Id == id);
             if (movie == null)
             {
                 return NotFound();
@@ -123,6 +200,20 @@ namespace MovieApp.Controllers
 
             return View(movie);
         }
+        public async Task<IActionResult> DeleteMovie(int? id)
+        {
+            var movie = await _context.Movies.FindAsync(id);
+
+            if (movie == null)
+            {
+                return NotFound();
+            }
+
+            _context.Remove(movie);
+            await _context.SaveChangesAsync();
+            return RedirectToAction("Movies");
+        }
+
         [HttpPost]
         public async Task<IActionResult> AddComment(int movieId, string commentText)
         {
@@ -149,22 +240,34 @@ namespace MovieApp.Controllers
 
 
         [HttpPost]
-        public async Task<IActionResult> UpdateMovie(Movie movie)
+        public async Task<IActionResult> UpdateMovie(Movie movie, int[] categoryIds)
         {
-            _context.Update(movie);
-            await _context.SaveChangesAsync();
-            return RedirectToAction("Movies");
-        }
-        public async Task<IActionResult> DeleteMovie(int? id)
-        {
-            var movie = await _context.Movies.FindAsync(id);
+            
+            var movieToUpdate = _context.Movies.Include(m => m.CategoryMovies).FirstOrDefault(m => m.Id == movie.Id);
 
-            if (movie == null)
+            
+            foreach (var cm in movieToUpdate.CategoryMovies)
             {
-                return NotFound();
+                _context.CategoryMovies.Remove(cm);
             }
 
-            _context.Remove(movie);
+           
+            foreach (var categoryId in categoryIds)
+            {
+                var categoryMovie = new CategoryMovie
+                {
+                    CategoryId = categoryId,
+                    MovieId = movie.Id
+                };
+                _context.CategoryMovies.Add(categoryMovie);
+            }
+
+            
+            movieToUpdate.Title = movie.Title;
+            movieToUpdate.Description = movie.Description;
+            movieToUpdate.Director = movie.Director;
+            movieToUpdate.ImageUrl = movie.ImageUrl;
+
             await _context.SaveChangesAsync();
             return RedirectToAction("Movies");
         }
@@ -273,7 +376,6 @@ namespace MovieApp.Controllers
         {
             if (id == null)
             {
-
                 var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
                 id = userId;
             }
@@ -283,6 +385,7 @@ namespace MovieApp.Controllers
                 .Include(u => u.WatchedMovies)
                 .Include(u => u.Followers)
                 .Include(u => u.FollowedUsers)
+                .Include(u => u.ReceivedMessages) // Include received messages here
                 .FirstOrDefault(u => u.Id == id);
 
             if (user == null)
@@ -297,11 +400,11 @@ namespace MovieApp.Controllers
 
             ViewBag.AllMovies = allMovies;
 
-
             user.PostCount = postCount;
 
             return View(user);
         }
+
 
         public IActionResult UserPosts(int userId)
         {
@@ -451,24 +554,53 @@ namespace MovieApp.Controllers
         {
             return View();
         }
-        public IActionResult Movies(string searchQuery)
+        public IActionResult Movies(string searchQuery, List<int> categoryIds)
         {
-            IQueryable<Movie> query = _context.Movies.Include(m => m.Category);
+            var movies = _context.Movies.Include(m => m.CategoryMovies).ThenInclude(cm => cm.Category).AsQueryable();
+
+            if (categoryIds != null && categoryIds.Any())
+            {
+                movies = movies.Where(m => m.CategoryMovies.Any(cm => categoryIds.Contains(cm.CategoryId)));
+            }
 
             if (!string.IsNullOrEmpty(searchQuery))
             {
-                query = query.Where(m =>
-                    EF.Functions.Like(m.Title, "%" + searchQuery + "%") ||
-                    //EF.Functions.Like(m.Description, "%" + searchQuery + "%") ||
-                    EF.Functions.Like(m.Director, "%" + searchQuery + "%") ||
-                    EF.Functions.Like(m.Category.Name, "%" + searchQuery + "%")
-                );
+                movies = movies.Where(m => m.Title.Contains(searchQuery) || m.Description.Contains(searchQuery) || m.Director.Contains(searchQuery));
             }
 
-            List<Movie> list = query.ToList();
-            return View(list);
+            var categories = _context.Categories.ToList();
+            ViewData["Categories"] = categories;
+
+            return View(movies.ToList());
         }
 
+        public IActionResult SeedCategoryMovies()
+        {
+            
+            var movies = _context.Movies.ToList();
+            
+            var random = new Random();
+            
+            foreach (var movie in movies)
+            {
+               
+                var numberOfCategories = random.Next(1, 4);
+                
+                var categories = _context.Categories.OrderBy(c => Guid.NewGuid()).Take(numberOfCategories).ToList();
+                
+                foreach (var category in categories)
+                {
+                    
+                    var categoryMovie = new CategoryMovie { MovieId = movie.Id, CategoryId = category.Id };
+                    
+                    _context.CategoryMovies.Add(categoryMovie);
+                }
+            }
+            // Save the changes to the database
+            _context.SaveChanges();
+            // Return a message indicating success
+            return Content("CategoryMovies seeded successfully.");
+        }
 
         public IActionResult Privacy()
         {
